@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Valorant Guess Who</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+margin:0;
+background:#0f1923;
+font-family:Arial;
+color:white;
+text-align:center;
+}
+
+header{
+padding:20px;
+font-size:32px;
+letter-spacing:3px;
+border-bottom:3px solid #ff4655;
+}
+
+.controls{
+margin:15px;
+}
+
+button{
+background:#ff4655;
+border:none;
+padding:12px 20px;
+margin:5px;
+color:white;
+font-size:15px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#ff2e43;
+}
+
+.board{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:12px;
+max-width:900px;
+margin:auto;
+padding:10px;
+}
+
+.card{
+background:#1f2326;
+border-radius:10px;
+overflow:hidden;
+border:2px solid transparent;
+cursor:pointer;
+transition:.2s;
+position:relative;
+}
+
+.card:hover{
+border:2px solid #ff4655;
+transform:scale(1.05);
+box-shadow:0 0 12px rgba(255,70,85,.7);
+}
+
+.card img{
+width:100%;
+display:block;
+}
+
+.name{
+background:#11161d;
+padding:6px;
+font-size:13px;
+}
+
+.crossed{
+filter:grayscale(100%);
+opacity:.35;
+}
+
+.crossed::after{
+content:"✖";
+position:absolute;
+font-size:60px;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:red;
+}
+
+.secret{
+margin-top:10px;
+font-size:20px;
+color:#ff4655;
+}
+
+@media(max-width:600px){
+
+.board{
+grid-template-columns:repeat(3,1fr);
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>VALORANT GUESS WHO</header>
+
+<div class="controls">
+
+<button onclick="startGame()">🎲 Start Guess Who</button>
+
+<button onclick="revealAgent()">👁 Reveal</button>
+
+<button onclick="resetBoard()">Reset</button>
+
+<div id="secret" class="secret"></div>
+
+</div>
+
+<div id="board" class="board"></div>
+
+<script>
+
+let agents=[]
+let boardAgents=[]
+let secretAgent=null
+
+fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
+.then(r=>r.json())
+.then(data=>{
+
+agents=data.data
+
+shuffle(agents)
+
+boardAgents=agents.slice(0,25)
+
+createBoard()
+
+})
+
+function createBoard(){
+
+const board=document.getElementById("board")
+
+board.innerHTML=""
+
+boardAgents.forEach(a=>{
+
+let img = a.displayIconSmall || a.displayIcon || a.fullPortrait
+
+const card=document.createElement("div")
+
+card.className="card"
+
+card.innerHTML=`
+<img src="${img}" onerror="this.src='${a.displayIconSmall}'">
+<div class="name">${a.displayName}</div>
+`
+
+card.onclick=()=>card.classList.toggle("crossed")
+
+board.appendChild(card)
+
+})
+
+}
+
+function startGame(){
+
+const r=Math.floor(Math.random()*boardAgents.length)
+
+secretAgent=boardAgents[r]
+
+document.getElementById("secret").innerText="Secret Agent Selected"
+
+}
+
+function revealAgent(){
+
+if(secretAgent){
+
+document.getElementById("secret").innerText=
+"Agent: "+secretAgent.displayName
+
+}
+
+}
+
+function resetBoard(){
+
+document.querySelectorAll(".card").forEach(c=>c.classList.remove("crossed"))
+
+document.getElementById("secret").innerText=""
+
+}
+
+function shuffle(array){
+
+for(let i=array.length-1;i>0;i--){
+
+const j=Math.floor(Math.random()*(i+1))
+
+[array[i],array[j]]=[array[j],array[i]]
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
